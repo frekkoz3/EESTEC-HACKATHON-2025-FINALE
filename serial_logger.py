@@ -6,7 +6,7 @@ SERIAL_PORT = "COM6"
 BAUD_RATE = 115200
 
 # File CSV di output
-OUTPUT_FILE = 'dati_oggetto_1.csv'
+OUTPUT_FILE = 'dati_oggetto_2.csv'
 
 # Intestazione del file CSV
 header = ['Angle', 'DMagnitude', 'X', 'Y', 'Z']
