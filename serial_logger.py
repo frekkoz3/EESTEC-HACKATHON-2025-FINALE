@@ -6,17 +6,10 @@ SERIAL_PORT = "COM6"
 BAUD_RATE = 115200
 
 # File CSV di output
-OUTPUT_FILE = 'dati_oggetto_3.csv'
-
-# Intestazione del file CSV
-header = ['Angle', 'DMagnitude', 'X', 'Y', 'Z']
-
-# Scrittura del file CSV con intestazione
-with open(OUTPUT_FILE, mode='w', newline='') as file_csv:
-    writer = csv.writer(file_csv)
+OUTPUT_FILE = '.\data\dati_oggetto_1.csv'
 
 # Buffer circolare di 30 elementi
-buffer = deque(maxlen=31)
+buffer = deque(maxlen=30)
 
 # Avvia connessione seriale
 ser = serial.Serial(SERIAL_PORT, BAUD_RATE)
@@ -35,6 +28,7 @@ try:
                 for entry in buffer:
                     # supponendo i valori separati da virgola
                     writer.writerow(entry.split(','))
+
 except KeyboardInterrupt:
     print("\nTermine acquisizione.")
     ser.close()

@@ -173,7 +173,7 @@ void loop() {
 
   if(dmagnitude > 0.5 && !holding){
     holding = 1;
-    Serial.print("Object detected");
+    Serial.print("Object detected\n");
   }
 
   last_x = x;
