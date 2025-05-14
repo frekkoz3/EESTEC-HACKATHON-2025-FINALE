@@ -6,7 +6,7 @@ SERIAL_PORT = "COM6"
 BAUD_RATE = 115200
 
 # File CSV di output
-OUTPUT_FILE = 'data\dati_oggetto_5.csv'
+OUTPUT_FILE = 'data\dati_oggetto_6.csv'
 
 # Buffer circolare di 30 elementi
 buffer = deque(maxlen=30)
