@@ -12,11 +12,18 @@ for i, port in enumerate(ports):
 index = int(input("Select port index: "))
 ser = serial.Serial(ports[index].device, 115200)
 
+# Flag to stop the thread safely
+running = True
+
 def read_serial():
-    while True:
-        line = ser.readline().decode('utf-8').strip()
-        output.insert(tk.END, line + '\n')
-        output.see(tk.END)
+    while running and ser.is_open:
+        try:
+            line = ser.readline().decode('utf-8').strip()
+            output.insert(tk.END, line + '\n')
+            output.see(tk.END)
+        except Exception as e:
+            print(f"Error reading serial: {e}")
+            break
 
 def send_open():
     ser.write(b'3\n')  # Assuming 3V = open command
@@ -24,8 +31,16 @@ def send_open():
 def send_close():
     ser.write(b'-3\n')  # Assuming -3V = close command
 
+def on_close():
+    global running
+    running = False  # Stop the serial reading loop
+    if ser.is_open:
+        ser.close()
+    root.destroy()
+
 root = tk.Tk()
 root.title("Smart Gripper Monitor")
+root.protocol("WM_DELETE_WINDOW", on_close)  # Handle window close
 
 frame = ttk.Frame(root, padding=10)
 frame.grid()
