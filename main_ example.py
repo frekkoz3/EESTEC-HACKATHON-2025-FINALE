@@ -64,16 +64,17 @@ def run_api():
 def run_streamlit():
     subprocess.Popen(["streamlit", "run", "gui.py"], shell=True)
 
-# def arduino_listener():
-#     while True:
-#         # Replace with actual serial logic
-#         # Fake touch detection every 5s
-#         print("Simulating: Touch detected")
-#         requests.post("http://127.0.0.1:8000/set_status/touched")
-#         time.sleep(5)
-#         print("Simulating: Released")
-#         requests.post("http://127.0.0.1:8000/set_status/released")
-#         time.sleep(5)
+def arduino_listener():
+    while True:
+        # Replace with actual serial logic
+        write_to_api("section", "still")
+        time.sleep(1)
+        write_to_api("section", "detected")
+        time.sleep(1)
+        write_to_api("section", "holding")
+        time.sleep(1)
+        write_to_api("section", "releasing")
+        time.sleep(1)
 
 if __name__ == "__main__":
     Process(target=run_api).start()
