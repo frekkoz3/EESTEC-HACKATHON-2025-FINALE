@@ -42,7 +42,6 @@ static int detecting_count = 0;       // This is the counter of step used for de
 static int max_detecting_count = 5;   // This is the maximum value for the counter for detection
 static int profiling_count = 0;       // This is the counter of step used for profiling
 static int max_profiling_count = 30;  // This is the maximum value for the counter for profiling
-static bool release_request = false;  // This is used to detect when we want the gripper to release the object its holding
 static String profile_type = "";      // This is the type of profile detected
 static int step = 0;                  // This is a simple step counter 
 static int max_step = 20;             // This is the period for the step counter
@@ -166,12 +165,8 @@ void loop() {
   // BUTTON 2 USED FOR RESETTING THE PROCEDURE
   if (digitalRead(BUTTON2) == LOW){
     reset_state();
-    delay(300);
+    delay(300); // PRESSING A BUTTON GENERATE PROBLEM
   }
-  /*
-  if (start && !detecting && !profiling && !holding){
-    Serial.print("Time to swing around\n");
-  }*/
 
   // DETECTING PHASE
   if (!detecting && start){
@@ -188,6 +183,8 @@ void loop() {
       Serial.print("Restarting\n");
       reset_state();
     }
+  }else{
+    target_voltage = 0;
   }
 
   // read the magnetic field data

@@ -1,6 +1,7 @@
 import os 
 import pandas as pd
-import sklearn 
+from sklearn.linear_model import LogisticRegression
+
 class DataRetriever:
     """
     This class is used to retrieve data from the data folder.
@@ -47,7 +48,7 @@ class DetectionModel:
     """
     This class is used to detect if an object is detected or not.
     """
-    def __init__(self, path = "models/detecting_model.csv", data_folder = "data/detecting_data"):
+    def __init__(self, path = "models/detecting_model.csv", data_folder = "data/detecting data"):
         self.path = path
         self.upload_model()
         self.data_folder = data_folder
@@ -82,25 +83,27 @@ class ProfilingModel:
     """
     This class is used to classify the profile of the resistance curve. This model is a logistic regression model.
     """
-    def __init__(self, path = "models/profiling_model.csv", data_folder = "data/detection_data"):
+    def __init__(self, path = "models/profiling_model.csv", data_folder = "data/profiling data"):
         self.path = path
         self.upload_model()
         self.data_folder = data_folder
     
     def upload_model(self):
         with open(self.path, 'r') as f:
-            # not correctly implemented yet
-            self.epsilon = float(f.readline().strip())
+            line = f.readline().strip()
+            self.slope = line.split(",")[0]
+            self.b = line.split(",")[1]
     
     def peak_position(self, data):
         """
         This function takes a list of data and returns the position of the peak in the data.
         """
         # Here we should implement the peak detection algorithm
-        # For now we just return the first element
-        max_idx = data.index(max(data))
-        return [data[max_idx], max_idx]
-
+        # For now we just return the first element:
+        data = list(data)
+        peak_pos = max(data), data.index(max(data))
+        return peak_pos
+    
     def tune_model(self):
         """
         This function takes all the data from the data folder in order to fine tune the model
@@ -109,26 +112,37 @@ class ProfilingModel:
         data_retriever = DataRetriever(self.data_folder)
         data, types = data_retriever.get_column("DMagnitude", "types")
         # Here we implement the model training
-        data = [self.peak_position(d) for d in data]
-                    
-        return self.epsilon
+        # This is a logistic regression model
+        x = [self.peak_position(d) for d in data]
+        y = [1 if t == 's' else 0 for t in types]
+        clf = LogisticRegression()
+        clf.fit(x, y)
+        w = clf.coef_[0]
+        b = clf.intercept_[0]
+        slope = -w[0] / w[1]
+        intercept = -b / w[1]
+        self.slope = slope
+        self.b = intercept
+        self.save_model()
     
     def save_model(self):
         with open(self.path, 'w') as f:
-            f.write(f"{self.epsilon}\n")
+            line = f"{self.slope},{self.b}\n"
+            f.write(line)   
 
-    def predict(self, curve):
+    def predict(self, data):
         """
-        This function takes a list of data and an epsilon value as input.
-        It returns if this data means that an object is detected or not.
+        This function takes a list of data as input.
+        It uses the linear seperator to classify if an object is a "s" (x over the separator) or "h" (x under the separator).
         """
-        too_small = [x for x in curve if abs(x) < self.epsilon]
-        if len(too_small) >= 3:
-            return "N"
+        x = self.peak_position(data) 
+        if x[0] > self.slope[0] * x[1] + self.b:
+            return "S"
         else:
-            return "D"
+            return "H"
         
 if __name__ == "__main__":
     dr = DataRetriever("data/profiling data")
     data = dr.get_column("DMagnitude", "types")
-    print(data)
+    model = ProfilingModel()
+    model.tune_model()

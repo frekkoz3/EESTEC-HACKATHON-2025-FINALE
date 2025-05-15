@@ -22,7 +22,7 @@ shared_state = {
 # === Outline of all possible variables one can access or edit and their possible values ===
 #     "mode": "NA", "grab", "train"
 #     "section": "NA", "still", "detect", "hold", "release" 
-#     "requests": "NA", "start"
+#     "request": "NA", "start"
 #     "data": many things, like images or strings, handled case by case
 
 

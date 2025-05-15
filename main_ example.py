@@ -69,5 +69,5 @@ if __name__ == "__main__":
     Process(target=run_api).start()
     time.sleep(1)  # Let API start up
 
-    #Process(target=arduino_listener).start()
+    Process(target=arduino_listener).start()
     run_streamlit()

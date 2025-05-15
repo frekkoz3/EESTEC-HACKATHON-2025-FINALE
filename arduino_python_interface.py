@@ -24,10 +24,10 @@ def inference_interface(data_provider, collecting = False):
         checking, detecting, profiling, holding, releasing, line = data_provider.read_data()
         print(line)
         if checking and detecting:
-            profiling_data = [split_data(d) for d in data_provider.profiling_data] # this is a matrix in the form DMagnitude, X, Y, Z 
+            detecting_data = [split_data(d) for d in data_provider.detecting_data] # this is a matrix in the form DMagnitude, X, Y, Z 
             if collecting:
                 # Here we should collect the data and save it to a file
-                data_provider.write_to_csv(detecting_data, f"data\detecting\detecting_data_{time_stamp}.csv")
+                data_provider.write_to_csv(detecting_data, f"./data/detecting/A.csv")
             needed_data = [d[0] for d in detecting_data]
             response = detect_model.detect(needed_data) # This is the algorithm that decide if it is noise signal or actually detected
             data_provider.write_data(response)
@@ -35,12 +35,12 @@ def inference_interface(data_provider, collecting = False):
             profiling_data = [split_data(d) for d in data_provider.profiling_data] # this is a matrix in the form DMagnitude, X, Y, Z 
             if collecting:
                 # Here we should collect the data and save it to a file
-                data_provider.write_to_csv(profiling_data, f"data\profiling\profiling_data_{time_stamp}.csv")
-            response = "H" # Here should be the algorithm that decides the response
+                data_provider.write_to_csv(profiling_data, f"./data/profiling/B.csv")
+            response = profile_model.predict(profiling_data) # Here should be the algorithm that decides the response
             data_provider.write_data(response)
         else:
             pass
 
 if __name__ == "__main__":
-    data_provider = online_data_provider.DataProvider("COM8", 115200)
+    data_provider = online_data_provider.DataProvider("COM6", 115200)
     inference_interface(data_provider)
