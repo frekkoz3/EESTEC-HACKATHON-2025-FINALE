@@ -26,17 +26,28 @@ class DataProvider:
             print("Detecting in corso...")
             self.detecting = True
             self.profiling = False
-            self.detecting_data = []
+            self.holding = False
+            self.releasing = False
+            self.detecting_data = [  ]
         elif line == "Profiling":
             print("Profiling in corso...")
             self.detecting = False
             self.profiling = True
+            self.holding = False
+            self.releasing = False
             self.profiling_data = []
         elif line == "Holding":
             print("Holding...")
             self.detecting = False
             self.profiling = False
             self.holding = True
+            self.releasing = False
+        elif line == "Releasing":
+            print("Releasing...")
+            self.detecting = False
+            self.profiling = False
+            self.holding = False
+            self.releasing = True
         elif self.detecting:
             if line:
                 self.detecting_data.append(line.strip().split(','))
@@ -63,13 +74,15 @@ class DataProvider:
             for entry in self.buffer:
                 writer.writerow(entry.split(','))
 
-SERIAL_PORT = "COM7"
-BAUD_RATE = 115200
+if __name__ == "__main__":
 
-OUTPUT_FILE = f"online_data.csv"
+    SERIAL_PORT = "COM7"
+    BAUD_RATE = 115200
 
-prov = DataProvider(1, 2, 3)
-while True:
-    if True:
-        file_path = "dati oggetto n"
-        prov.write_data(prov.profiling_data, file_path)
+    OUTPUT_FILE = f"online_data.csv"
+
+    prov = DataProvider(1, 2)
+    while True:
+        if True:
+            file_path = "dati oggetto n"
+            prov.write_data(prov.profiling_data, file_path)
