@@ -13,10 +13,17 @@ app.add_middleware(
 
 # === Shared state reflecting your keys ===
 shared_state = {
-    "mode": "NA",       # e.g., "idle", "training", "active"
-    "section": "NA",    # e.g., "grabbing", "holding"
-    "request": "NA"     # e.g., command/request to Arduino
+    "mode": "NA",
+    "section": "NA",
+    "request": "NA",
+    "data": "NA"
 }
+
+# === Outline of all possible variables one can access or edit and their possible values ===
+#     "mode": "NA", "grab", "train"
+#     "section": "NA", "still", "detect", "hold", "release" 
+#     "request": "NA"
+#     "data": many things, like images or strings, handled case by case
 
 
 # === POST endpoint to update mode ===
