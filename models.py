@@ -8,5 +8,4 @@ def detection_data(data, epsilon = 0.2):
         return "N"
     else:
         return "D"
-    
-def profiling_curve(data)
+
