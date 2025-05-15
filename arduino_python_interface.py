@@ -14,6 +14,8 @@ def inference_interface(data_provider, collecting = False):
     detecting_data = []
     profiling_data = []
     # time stamp da computare qui 
+    detect_model = DetectionModel()
+    profile_model = ProfilingModel()
     time_stamp = 0
     while True:
         # leggere la pipeline e salvarsi localmente i dati della pipeline
@@ -27,7 +29,7 @@ def inference_interface(data_provider, collecting = False):
                 # Here we should collect the data and save it to a file
                 data_provider.write_to_csv(detecting_data, f"data\detecting\detecting_data_{time_stamp}.csv")
             needed_data = [d[0] for d in detecting_data]
-            response = detection_data(needed_data) # This is the algorithm that decide if it is noise signal or actually detected
+            response = detect_model.detect(needed_data) # This is the algorithm that decide if it is noise signal or actually detected
             data_provider.write_data(response)
         elif checking and profiling:
             profiling_data = [split_data(d) for d in data_provider.profiling_data] # this is a matrix in the form DMagnitude, X, Y, Z 
@@ -38,8 +40,6 @@ def inference_interface(data_provider, collecting = False):
             data_provider.write_data(response)
         else:
             pass
-        # sovrascrivere la pipeline
-        # pipeline = [detecting, profiling, holding, releasing] 
 
 if __name__ == "__main__":
     data_provider = online_data_provider.DataProvider("COM8", 115200)
