@@ -91,8 +91,8 @@ class ProfilingModel:
     def upload_model(self):
         with open(self.path, 'r') as f:
             line = f.readline().strip()
-            self.slope = line.split(",")[0]
-            self.b = line.split(",")[1]
+            self.slope = float(line.split(",")[0])
+            self.b = float(line.split(",")[1])
     
     def peak_position(self, data):
         """
@@ -136,7 +136,7 @@ class ProfilingModel:
         It uses the linear seperator to classify if an object is a "s" (x over the separator) or "h" (x under the separator).
         """
         x = self.peak_position(data) 
-        if x[0] > self.slope[0] * x[1] + self.b:
+        if x[0] > self.slope*x[1] + self.b:
             return "S"
         else:
             return "H"

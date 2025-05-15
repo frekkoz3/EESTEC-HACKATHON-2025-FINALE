@@ -349,7 +349,6 @@ void reset_state(){
   releasing = false;
   detecting_count = 0;
   profiling_count = 0;
-  release_request = false;
   profile_type = "";
   step = 0;
   releasing_time = 0;   
