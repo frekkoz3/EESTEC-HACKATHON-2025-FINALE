@@ -1,74 +1,175 @@
-import tkinter as tk
-from tkinter import ttk
-import serial
-import serial.tools.list_ports
-import threading
+import streamlit as st
 import time
 
-# === Select COM Port ===
-ports = list(serial.tools.list_ports.comports())
-for i, port in enumerate(ports):
-    print(f"{i}: {port.device} - {port.description}")
+# === Support Function ===
+def set_session_state(**kwargs):
+    for key, value in kwargs.items():
+        st.session_state[key] = value
+    
+# === Landing Page ===
+def show_landing_page():
+    st.image("touch grass.png", width=400)
+    st.title("🌿 Grass Toucher")
+    st.markdown("Welcome to the site programmers *rarely* use! Select an action below to proceed.")
 
-index = int(input("Select port index: "))
-PORT = ports[index].device
-BAUD = 115200
-ser = serial.Serial(PORT, BAUD, timeout=1)
-a = serial.serial
-# === Initialize Serial Communication ===
-def init_serial():
-    time.sleep(3)  # Give Arduino time to reset after connection
+    col1, col2 = st.columns(2)
+    with col1:
+        st.button("Touch Some Grass", on_click = set_session_state, kwargs = {"page": "grass"})
+    with col2:
+        st.button("Train the Model", on_click = set_session_state, kwargs = {"page": "train_setup"})
 
-# === Flag ===
-running = True  # Used to stop the thread on exit
 
-# === Read Data from Arduino ===
-def read_serial():
-    while running and ser.is_open:
-        try:
-            if ser.in_waiting:
-                line = ser.readline().decode('utf-8').strip()
-                output.insert(tk.END, f"[Arduino] {line}\n")
-                output.see(tk.END)
-                # qua interpreto il messaggio e chiamo la funzione corrispondente
-                #TODO
-        except Exception as e:
-            output.insert(tk.END, f"[Error] {e}\n")
-            break
+# ╔══════════════════════════════════════════════════╗
+# ║    Section: Pages used in the training process   ║
+# ╚══════════════════════════════════════════════════╝
 
-# === Send Commands to Arduino ===
-def send_open():
-    ser.write(b'open\n')
+# === Train Setup Page ===
+def show_train_setup():
+    screen = st.empty()
+    with screen.container():
+        st.title("Training Setup")
 
-def send_close():
-    ser.write(b'close\n')
+        st.markdown("### Select Object to Train With:")
+        selected_object = st.selectbox("", ["Balloon", "Wood Stick", "Steel Bar"])
+            
+        st.markdown("### Select Hardness Level:")
+        selected_hardness = st.selectbox("", ["Soft", "Medium", "Hard"])
 
-# === Close Program ===
-def on_close():
-    global running
-    running = False
-    if ser.is_open:
-        ser.close()
-    root.quit()
+        # TODO: Store or use selected_object and selected_hardness
 
-# === GUI Setup ===
-root = tk.Tk()
-root.title("Smart Gripper Monitor")
-root.protocol("WM_DELETE_WINDOW", on_close)
+        st.button("Start Training", on_click = set_session_state, kwargs = {"page": "train_start"})
 
-frame = ttk.Frame(root, padding=10)
-frame.grid()
+# === Training Flow ===
+def train_router():
+    # === Sub-router ===
+    if st.session_state.train == "begin":
+        train_begin()
+    elif st.session_state.train == "closing":
+        train_closing()
+    elif st.session_state.train == "release":
+        train_release()
+    else:
+        st.error("Invalid training state.")
 
-ttk.Button(frame, text="Train", command=send_open).grid(row=0, column=0)
-ttk.Button(frame, text="Touch grass", command=send_close).grid(row=0, column=1)
+def train_begin():
+    screen = st.empty()
+    with screen.container():
+        st.header("Training is About to Begin")
+        st.button("Start Trial", on_click = set_session_state, kwargs = {"train": "closing"})
 
-output = tk.Text(frame, height=20, width=50)
-output.grid(row=1, column=0, columnspan=2)
+def train_closing():
+    # TODO: Link a function to actially start gripping
 
-# === Start Serial Reader Thread ===
-init_serial()
-thread = threading.Thread(target=read_serial, daemon=True)
-thread.start()
+    screen = st.empty()
+    with screen.container():
+        st.header("Training in Progress")
+        st.markdown("Gripper is approaching the object...")
 
-# === Start GUI ===
-root.mainloop()
+        # TODO
+        # wait for signal from library
+        # while not api.contact_signal():
+        #     time.sleep(0.01)
+
+        st.markdown("Object detected.")
+
+        # TODO This might not be needed — confirm with final signals
+        # wait for signal from library
+        # while not api.now_holding():
+        #     time.sleep(0.01)
+
+        st.markdown("Now holding the object")
+
+        st.button("Release", on_click = set_session_state, kwargs = {"train": "release"})
+
+def train_release():
+    screen = st.empty()
+    with screen.container():
+        st.header("Training in Progress")
+        st.markdown("Releasing object...")
+
+        # TODO
+        # wait for signal from library
+        # while not api.released():
+        #     time.sleep(0.01)
+        
+        st.markdown("Object has been released.")
+        st.success("Training steps completed!")
+
+        st.button("See Results", on_click = set_session_state, kwargs = {"page": "train_results"})
+
+# === Results Of The Training Phase ===
+def show_train_results():
+    screen = st.empty()
+    with screen.container():
+        # TODO
+        # show some results
+
+        st.session_state.train = "begin"
+        st.button("Home Page", on_click = set_session_state, kwargs = {"page": "landing"})
+
+
+# ╔═══════════════════════════════════════════════════════╗
+# ║    Section: Pages used in the main gripping process   ║
+# ╚═══════════════════════════════════════════════════════╝
+
+# === Grass Sub-Router ===
+def grass_router():
+    if st.session_state.grassing == "ready":
+        show_begin_grassing()
+    elif st.session_state.grassing == "begun":
+        show_grassing_process()
+    else:
+        st.error("Invalid grassing state.")
+
+# === Begin Touching Grass ===
+def show_begin_grassing():
+    screen = st.empty()
+    with screen.container():
+        st.header("Grass touching is about to happen")
+        st.button("Begin", on_click = set_session_state, kwargs = {"grassing": "begun"})
+        st.button("Home Page", on_click = set_session_state, kwargs = {"page": "landing"})
+
+# === Gripper Closing and Holding ===
+def show_grassing_process():
+    screen = st.empty()
+    with screen.container():
+        st.header("Grass touching in process...")
+        
+        # TODO : wait for contact and print next phrase
+        st.markdown("Object encountered, now holding it")
+
+        # TODO : if object is pulled of, enter release mode
+        st.markdown("Object is being released...")
+        
+        # TODO : once arduino ceases activity, print the following:
+        st.markdown("Execution ended. Here are the results:")
+        # TODO : add some information, like plots or classification 
+
+        st.button("Try Again", on_click = set_session_state, kwargs = {"grassing": "ready"})
+        st.button("Home Page", on_click = set_session_state, kwargs = {"page": "landing"})
+
+
+# ╔═══════════════════════════════════════════════════════╗
+# ║   Section: Actual program that will run when called   ║
+# ╚═══════════════════════════════════════════════════════╝
+
+if __name__ == "__main__":
+    # === Setup Global Variables ===
+    if 'page' not in st.session_state:
+        st.session_state.page = "landing"
+    if "train" not in st.session_state:
+        st.session_state.train = "begin"
+    if "grassing" not in st.session_state:
+        st.session_state.grassing = "ready"
+
+    # === Page Router ===
+    if st.session_state.page == "landing":
+        show_landing_page()
+    elif st.session_state.page == "train_setup":
+        show_train_setup()
+    elif st.session_state.page == "train_start":
+        train_router()
+    elif st.session_state.page == "train_results":
+        show_train_results()
+    elif st.session_state.page == "grass":
+        grass_router()
