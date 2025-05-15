@@ -74,13 +74,15 @@ class DataProvider:
             for entry in self.buffer:
                 writer.writerow(entry.split(','))
 
-SERIAL_PORT = "COM7"
-BAUD_RATE = 115200
+if __name__ == "__main__":
 
-OUTPUT_FILE = f"online_data.csv"
+    SERIAL_PORT = "COM7"
+    BAUD_RATE = 115200
 
-prov = DataProvider(1, 2, 3)
-while True:
-    if True:
-        file_path = "dati oggetto n"
-        prov.write_data(prov.profiling_data, file_path)
+    OUTPUT_FILE = f"online_data.csv"
+
+    prov = DataProvider(1, 2)
+    while True:
+        if True:
+            file_path = "dati oggetto n"
+            prov.write_data(prov.profiling_data, file_path)
