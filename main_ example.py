@@ -23,8 +23,6 @@ def write_to_api(variable: str, value: str):
     Args:
         variable (str): The name of the variable to set.
         value (str): The value to assign to the variable.
-
-    for more infos, inspect the dictionary all_section_values.
     """
     endpoint = f"{BASE_URL}/{variable}/{value}"
     response = requests.post(endpoint)
@@ -39,8 +37,6 @@ def read_from_api(variable: str):
 
     Args:
         variable (str): The name of the variable to set.
-
-    for more infos, inspect the dictionary all_section_values
     """
     response = requests.get(f"{BASE_URL}/{variable}")
     if response.ok:
@@ -73,5 +69,5 @@ if __name__ == "__main__":
     Process(target=run_api).start()
     time.sleep(1)  # Let API start up
 
-    Process(target=arduino_listener).start()
+    #Process(target=arduino_listener).start()
     run_streamlit()
