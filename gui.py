@@ -145,7 +145,7 @@ def train_release():
         st.markdown("Releasing object...")
 
         # Wait for release to be completed
-        while read_from_api("section") != "released":
+        while read_from_api("section") != "still":
             time.sleep(0.03)
 
         st.markdown("Object has been released.")
@@ -204,8 +204,13 @@ def show_grassing_process():
             time.sleep(0.03)
         st.markdown("Object is being held")
 
-        # Check wether objectis being released
-        while read_from_api("section") != "released":
+        # Check wether objectis are being released
+        while read_from_api("section") != "releasing":
+            time.sleep(0.03)
+        st.markdown("Object is being released")
+
+        # Check wether objectis have been released
+        while read_from_api("section") != "still":
             time.sleep(0.03)
         st.markdown("Object has been released")
         
