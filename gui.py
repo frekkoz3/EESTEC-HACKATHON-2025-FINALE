@@ -1,5 +1,8 @@
 import streamlit as st
 import time
+import subprocess
+import requests
+import uvicorn
 
 # === Support Function ===
 def set_session_state(**kwargs):
@@ -105,6 +108,7 @@ def show_train_results():
         # show some results
 
         st.session_state.train = "begin"
+        st.button("New Object", on_click = set_session_state, kwargs = {"page": "train_setup"})
         st.button("Home Page", on_click = set_session_state, kwargs = {"page": "landing"})
 
 
