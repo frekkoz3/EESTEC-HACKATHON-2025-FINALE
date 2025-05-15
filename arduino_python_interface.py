@@ -28,7 +28,7 @@ def inference_interface(data_provider):
         else:
             pass
 
-def train_interfsce():
+def train_interface():
     pass
 
 if __name__ == "__main__":
