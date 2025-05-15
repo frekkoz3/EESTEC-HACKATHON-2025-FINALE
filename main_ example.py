@@ -9,8 +9,8 @@ import uvicorn
 
 # === Outline of all possible variables one can access or edit and their possible values ===
 #     "mode": "NA", "grab", "train"
-#     "section": "NA", "still", "detect", "hold", "release" 
-#     "request": "NA"
+#     "section": "NA", "detected", "holding", "released", "still"
+#     "request": "NA", "begin", "release"
 #     "data": many things, like images or strings, handled case by case
 
 
@@ -47,6 +47,16 @@ def read_from_api(variable: str):
         print(f"[READ ERROR] Failed to read '{variable}' - {response.status_code}")
         return None
 
+def reset_all_variables():
+    """
+    Sends a POST request to reset all variables in the shared state to "NA".
+    """
+    endpoint = f"{BASE_URL}/reset"
+    response = requests.post(endpoint)
+    if response.ok:
+        print("[WRITE] All variables reset to 'NA'")
+    else:
+        print(f"[WRITE ERROR] Failed to reset variables - {response.status_code}")
 
 def run_api():
     uvicorn.run("api_server:app", host="127.0.0.1", port=8000, log_level="warning")
