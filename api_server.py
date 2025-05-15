@@ -14,15 +14,15 @@ app.add_middleware(
 # === Shared state reflecting your keys ===
 shared_state = {
     "mode": "NA",
-    "section": "NA",
+    "section": "detect",
     "requests": "NA",
     "data": "NA"
 }
 
 # === Outline of all possible variables one can access or edit and their possible values ===
 #     "mode": "NA", "grab", "train"
-#     "section": "NA", "still", "detect", "hold", "release" 
-#     "request": "NA", "start"
+#     "section": "NA", "detected", "holding", "released" 
+#     "request": "NA", "begin", "release"
 #     "data": many things, like images or strings, handled case by case
 
 
