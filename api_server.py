@@ -18,10 +18,6 @@ shared_state = {
     "request": "NA"     # e.g., command/request to Arduino
 }
 
-# === GET endpoint to read full state ===
-@app.get("/status")
-def get_status():
-    return shared_state
 
 # === POST endpoint to update mode ===
 @app.post("/set_mode/{value}")
@@ -50,3 +46,10 @@ def reset_state():
         "request": "NA"
     })
     return {"message": "State reset to default"}
+
+# === GET endpoint for a single variable ===
+@app.get("/get/{variable}")
+def get_variable(variable: str):
+    if variable in shared_state:
+        return {variable: shared_state[variable]}
+    raise HTTPException(status_code=404, detail=f"Variable '{variable}' not found.")
