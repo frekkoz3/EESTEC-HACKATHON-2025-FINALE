@@ -10,27 +10,37 @@ def split_data(data):
     """
     return [float(d) for d in data]
 
-def inference_interface(data_provider):
+def inference_interface(data_provider, collecting = False):
     detecting_data = []
     profiling_data = []
+    # time stamp da computare qui 
+    time_stamp = 0
     while True:
+        # leggere la pipeline e salvarsi localmente i dati della pipeline
+        # start, release, object, type = pipeline
+        #
         checking, detecting, profiling, holding, releasing, line = data_provider.read_data()
         print(line)
         if checking and detecting:
-            detecting_data = [split_data(d) for d in data_provider.detecting_data]
+            profiling_data = [split_data(d) for d in data_provider.profiling_data] # this is a matrix in the form DMagnitude, X, Y, Z 
+            if collecting:
+                # Here we should collect the data and save it to a file
+                data_provider.write_to_csv(detecting_data, f"data\detecting\detecting_data_{time_stamp}.csv")
             needed_data = [d[0] for d in detecting_data]
             response = detection_data(needed_data) # This is the algorithm that decide if it is noise signal or actually detected
             data_provider.write_data(response)
         elif checking and profiling:
-            profiling_data = [split_data(d) for d in data_provider.profiling_data]
+            profiling_data = [split_data(d) for d in data_provider.profiling_data] # this is a matrix in the form DMagnitude, X, Y, Z 
+            if collecting:
+                # Here we should collect the data and save it to a file
+                data_provider.write_to_csv(profiling_data, f"data\profiling\profiling_data_{time_stamp}.csv")
             response = "H" # Here should be the algorithm that decides the response
             data_provider.write_data(response)
         else:
             pass
-
-def train_interfsce():
-    pass
+        # sovrascrivere la pipeline
+        # pipeline = [detecting, profiling, holding, releasing] 
 
 if __name__ == "__main__":
-    data_provider = online_data_provider.DataProvider("COM7", 115200)
+    data_provider = online_data_provider.DataProvider("COM8", 115200)
     inference_interface(data_provider)
