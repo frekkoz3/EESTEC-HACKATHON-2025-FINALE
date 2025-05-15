@@ -49,10 +49,12 @@ def train_router():
 def train_begin():
     screen = st.empty()
     with screen.container():
-        st.header("Training in Progress")
-        st.button("Start Closing", on_click = set_session_state, kwargs = {"train": "closing"})
+        st.header("Training is About to Begin")
+        st.button("Start Trial", on_click = set_session_state, kwargs = {"train": "closing"})
 
 def train_closing():
+    # TODO: Link a function to actially start gripping
+
     screen = st.empty()
     with screen.container():
         st.header("Training in Progress")
@@ -100,12 +102,39 @@ def show_train_results():
         st.session_state.train = "begin"
         st.button("Home Page", on_click = set_session_state, kwargs = {"page": "landing"})
 
-# === Main Grabber Function ===
-def show_touch_grass():
+# === Grass Sub-Router ===
+def grass_router():
+    if st.session_state.grassing == "ready":
+        show_begin_grassing()
+    elif st.session_state.grassing == "begun":
+        show_grassing_process()
+    else:
+        st.error("Invalid grassing state.")
+
+# === Begin Touching Grass ===
+def show_begin_grassing():
     screen = st.empty()
     with screen.container():
+        st.header("Grass touching is about to happen")
+        st.button("Begin", on_click = set_session_state, kwargs = {"grassing": "begun"})
         st.button("Home Page", on_click = set_session_state, kwargs = {"page": "landing"})
 
+# === Gripper Closing and Holding ===
+def show_grassing_process():
+    screen = st.empty()
+    with screen.container():
+        st.header("Grass touching in process...")
+        
+        # TODO : wait for contact and print next phrase
+        st.markdown("Object encountered, now holding it")
+
+        # TODO : if object is pulled of, enter release mode
+        st.markdown("Object is being released...")
+        
+        # TODO : once arduino ceases activity, print the following:
+        st.markdown("Execution ended. Do you want to try again?")
+        st.button("Try Again", on_click = set_session_state, kwargs = {"grassing": "ready"})
+        st.button("Home Page", on_click = set_session_state, kwargs = {"page": "landing"})
 
 if __name__ == "__main__":
     # === Setup Global Variables ===
@@ -113,6 +142,8 @@ if __name__ == "__main__":
         st.session_state.page = "landing"
     if "train" not in st.session_state:
         st.session_state.train = "begin"
+    if "grassing" not in st.session_state:
+        st.session_state.grassing = "ready"
 
     # === Page Router ===
     if st.session_state.page == "landing":
@@ -124,4 +155,4 @@ if __name__ == "__main__":
     elif st.session_state.page == "train_results":
         show_train_results()
     elif st.session_state.page == "grass":
-        show_touch_grass()
+        grass_router()
