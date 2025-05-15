@@ -24,6 +24,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+using namespace std;
+
 // define SPI pins for TLE5012 sensor
 #define PIN_SPI1_SS0 94  // Chip Select (CS) pin
 #define PIN_SPI1_MOSI 69 // MOSI pin
@@ -31,16 +33,24 @@
 #define PIN_SPI1_SCK 68  // SCK pin
 
 static float last_x = 0, last_y = 0, last_z = 0;
-static bool start = false; // This is used to understand how to actually begin
-static bool detecting = false; // This is used to detect when it is gripping an object
-static bool profiling = false; // This is used to detect what type of object we are gripping
-static bool holding = false; // This is used to detect when we are gonna hold the object
-static int profiling_count = 0; // This is the counter of step used for profiling
-static int max_profiling_count = 30; // This is the maximum value for the counter for profiling
-static bool release_request = false; // This is used to detect when we want the gripper to release the object its holding
+static bool start = false;            // This is used to understand how to actually begin
+static bool detecting = false;        // This is used to detect when it is gripping an object
+static bool profiling = false;        // This is used to detect what type of object we are gripping
+static bool holding = false;          // This is used to detect when we are gonna hold the object
+static bool releasing = false;        // This is used to detect when its time to release the object
+static int detecting_count = 0;       // This is the counter of step used for detection
+static int max_detecting_count = 5;   // This is the maximum value for the counter for detection
+static int profiling_count = 0;       // This is the counter of step used for profiling
+static int max_profiling_count = 30;  // This is the maximum value for the counter for profiling
+static bool release_request = false;  // This is used to detect when we want the gripper to release the object its holding
+static String profile_type = "";      // This is the type of profile detected
+static int step = 0;                  // This is a simple step counter 
+static int max_step = 20;             // This is the period for the step counter
+static int releasing_time = 0;        // This is the counter for the release action
 
 // create an instance of SPIClass3W for 3-wire SPI communication
 tle5012::SPIClass3W tle5012::SPI3W1(2);
+
 // create an instance of TLE5012Sensor
 TLE5012Sensor tle5012Sensor(&SPI3W1, PIN_SPI1_SS0, PIN_SPI1_MISO, PIN_SPI1_MOSI,
                             PIN_SPI1_SCK);
@@ -141,35 +151,48 @@ void setup() {
   command.add('T', doTarget, "target voltage");
   Serial.println(F("Set the target voltage using serial terminal:"));
 #endif
-  _delay(10);
+  _delay(20);
 }
 
 void loop() {
+  step = step++%max_step;
 #if ENABLE_MAGNETIC_SENSOR
-/*
-  if (digitalRead(BUTTON1) == LOW) {
-    target_voltage = -3; // close gripper
-  } else if (digitalRead(BUTTON2) == LOW) {
-    target_voltage = 3; // open gripper
-  } else {
-    target_voltage = 0; // stop gripper
-  }
-*/
+  // BUTTON 1 USED FOR STARTING THE PROCEDURE
   if (digitalRead(BUTTON1) == LOW){
+    Serial.print("Starting!\n");
     start = true;
+    delay(300); // PRESSING A BUTTON GENERATE PROBLEM
   }
-  if (!detecting && start){
+  // BUTTON 2 USED FOR RESETTING THE PROCEDURE
+  if (digitalRead(BUTTON2) == LOW){
+    Serial.print("Resetting!\n");
+    reset_state();
+    releasing = true;
+    delay(300);
+  }
+  /*
+  if (start && !detecting && !profiling && !holding){
+    Serial.print("Time to swing around\n");
+  }*/
+
+  // DETECTING PHASE
+  if (!detecting && start && !releasing){
     target_voltage = -2;
+  }else if (detecting && start){
+    target_voltage = -1;
+  }else if(profiling){
+    target_voltage = -0.5;
   }
-  else{
+  else if (releasing){
+    target_voltage = 0.5;
+    releasing_time ++;
+    if (releasing_time == 100){
+      Serial.print("Restarting\n");
+      reset_state();
+    }
+  }else{
     target_voltage = 0;
   }
-
-  // ---------------------------------------------------------------------
-  // epileptic attack : random movement
-  // int direction = random(3) - 1; // random direction between -1, 0 and 1
-  //target_voltage = direction * 3;
-  // ---------------------------------------------------------------------
 
   // read the magnetic field data
   double x, y, z;
@@ -181,31 +204,85 @@ void loop() {
   y -= yOffset;
   z -= zOffset;
 
+  //plotter(x, y, z);
+
   float dx = x - last_x;
   float dy = y - last_y;
   float dz = z - last_z;
 
   float dmagnitude = sqrt(dx*dx + dy*dy + dz*dz);
 
-  if (!detecting && start){
-    // print the magnetic field data, including the dalta magnitude
-    Serial.print("DMagnitue: ");
-    Serial.print(dmagnitude);
-    Serial.print(", ");
-    Serial.print("X: ");
-    Serial.print(x);
-    Serial.print(", ");
-    Serial.print("Y: ");
-    Serial.print(y);
-    Serial.print(", ");
-    Serial.print("Z: ");
-    Serial.print(z);
-    Serial.println(", ");
+  if(dmagnitude > 0.45 && !detecting && start && !profiling && !holding && !releasing){
+    detecting = true;
+    detecting_count = 0;
+    Serial.print("Detecting\n");
   }
 
-  if(dmagnitude > 0.40 && !detecting && start){
-    detecting = true;
-    Serial.print("Object detected");
+  // DETECTING PHASE
+  String detected_validity = "";
+  if (detecting){
+    print_data(dmagnitude, x, y, z);
+    detecting_count ++;
+    if (detecting_count == max_detecting_count){
+      Serial.print("Checking\n");
+      bool read = false;
+      while (!read){
+        if (Serial.available()>0){
+          detected_validity = Serial.readStringUntil('\n');
+          detected_validity.trim();
+          read = true;
+          if (detected_validity == "D"){
+            detecting = false;
+            profiling = true;
+            Serial.print("Profiling\n");
+            profiling_count = 0;
+          }
+          if (detected_validity == "N"){
+            Serial.print("False Detection occurred\n");
+            detecting = false;
+          }
+        }
+      }
+    }
+  }
+
+  // PROFILING PHASE
+  if (profiling){
+    print_data(dmagnitude, x, y, z);
+    profiling_count ++;
+    if (profiling_count == max_profiling_count){
+      profiling = false;
+      Serial.print("Checking\n");
+      holding = true;
+      bool read = false;
+      while(!read){
+        if (Serial.available()>0) {
+          profile_type = Serial.readStringUntil('\n');
+          profile_type.trim();
+          read = true;
+        }
+      }
+      Serial.print("Holding\n");
+    }
+  }
+
+  // HOLDING PHASE
+  // Here we have to set a specific voltage profile
+  if(holding){
+    if (profile_type == "H"){
+      target_voltage = -3;
+    }
+    else if (profile_type == "M"){
+      target_voltage = step < max_step/2 ? -0.5 : -1.5 ;
+    }
+    else if (profile_type == "S"){
+      target_voltage = step < max_step/2 ? -0.5 : 0.2;
+    }
+    if (dmagnitude > 0.5){ // This threshold is not actualy fixed
+      holding = false;
+      releasing = true;
+      Serial.print("Releasing\n");
+    }
   }
 
   last_x = x;
@@ -216,8 +293,12 @@ void loop() {
   // update angle sensor data
   tle5012Sensor.update();
 #if ENABLE_READ_ANGLE
-  Serial.print(tle5012Sensor.getSensorAngle());
-  Serial.println("");
+  float angle = tle5012Sensor.getSensorAngle();
+  if(profiling){
+    Serial.print("\n");
+    Serial.print(angle);
+    Serial.print(", ");
+  }
 #endif
   // main FOC algorithm function
   // the faster you run this function the better
@@ -230,12 +311,6 @@ void loop() {
   // this function can be run at much lower frequency than loopFOC() function
   // You can also use motor.move() and set the motor.target in the code
   motor.move(target_voltage);
-  float angle = motor.sensor->getAngle();
-  if(!detecting && start){
-    Serial.print("Angle: ");
-    Serial.print(angle);
-    Serial.print(", ");
-  }
   
 #if ENABLE_COMMANDER
   // user communication
@@ -269,3 +344,40 @@ void calibrateSensor() {
   zOffset = sumZ / CALIBRATION_SAMPLES;
 }
 #endif
+
+// function to reset
+void reset_state(){
+  // pls open the hand UwU
+  last_x = 0, last_y = 0, last_z = 0;
+  start = false;
+  detecting = false;
+  profiling = false;
+  holding = false;
+  releasing = false;
+  detecting_count = 0;
+  profiling_count = 0;
+  release_request = false;
+  profile_type = "";
+  step = 0;
+  releasing_time = 0;   
+}
+
+void print_data(double dmagnitude, double x, double y, double z){
+  Serial.print(dmagnitude);
+  Serial.print(",");
+  Serial.print(x);
+  Serial.print(",");
+  Serial.print(y);
+  Serial.print(",");
+  Serial.print(z);
+  Serial.print("\n");
+}
+
+void plotter(double x, double y, double z){
+  Serial.print(x);
+  Serial.print(",");
+  Serial.print(y);
+  Serial.print(",");
+  Serial.print(z);
+  Serial.print("\n");
+}
