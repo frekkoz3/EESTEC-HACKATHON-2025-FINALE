@@ -2,4 +2,3 @@
 
 Official Repo for the Eestec Hackathon 2025 Final. NSNG Team.
 ---
-Tool: 
